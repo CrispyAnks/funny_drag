@@ -7,6 +7,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <h1>ボタン⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩<br/><br/><br/><br/><br/><br/><br/><br/>
+      ボタン→→→→→→→→→→→</h1>
       {!isChatOpen && <FloatingButton onClick={() => setIsChatOpen(!isChatOpen)} />}
       {isChatOpen && <ChatWindow onClose={() => setIsChatOpen(false)} />}
     </div>
