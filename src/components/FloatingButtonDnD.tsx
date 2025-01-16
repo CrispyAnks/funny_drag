@@ -1,49 +1,81 @@
-import React, { useState } from 'react';
-import { useDrag, useDrop, DropTargetMonitor } from 'react-dnd';
-import { MessageSquareDot } from 'lucide-react';
+import type { FC } from 'react'
+import update from 'immutability-helper'
+import { useCallback, useState } from 'react'
+import type { XYCoord } from 'react-dnd'
+import { useDrop, useDrag } from 'react-dnd'
+import { MessageCircle } from 'lucide-react';
 
 interface FloatingButtonDnDProps {
   onClick: () => void;
 }
 
-export const FloatingButtonDnD: React.FC<FloatingButtonDnDProps> = ({ onClick }) => {
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+export interface DragItem {
+  type: string
+  top: number
+  left: number
+}
 
-  // useDrag hook
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'button',
-    item: { type: 'button' },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  }));
+export const ItemTypes = {
+  BOX: 'box',
+}
 
-  
-  const [, drop] = useDrop(() => ({
-    accept: 'button',
-    drop: (monitor : DropTargetMonitor) => {
-      const offset = monitor.getClientOffset();
-      console.log(offset)
-      if (offset) {
-        setPosition({
-          top: offset.y - 50, 
-          left: offset.x - 50,
-        });
-      }
+export const FloatingButtonDnD: FC<FloatingButtonDnDProps> = ({ onClick }) => {
+
+  const [position, setPosition] = useState<{
+      top: number
+      left: number
+    }>({ top: 20, left: 80 })
+
+  const moveButton = useCallback(
+    (left: number, top: number) => {
+      setPosition(
+        update(position, {
+            $merge: { left, top },
+         }),
+      )
     },
-  }));
+    [position, setPosition],
+  )
+
+  const [, drop] = useDrop(
+    () => ({
+      accept: ItemTypes.BOX,
+      drop(item: DragItem, monitor) {
+        const delta = monitor.getDifferenceFromInitialOffset() as XYCoord
+        const left = Math.round(item.left + delta.x)
+        const top = Math.round(item.top + delta.y)
+        moveButton(left, top)
+        return undefined
+      },
+    }),
+    [moveButton],
+  )
+
+  const [{ isDragging }, drag] = useDrag(
+      () => ({
+        type: ItemTypes.BOX,
+        item: position,
+        collect: (monitor) => ({
+          isDragging: monitor.isDragging(),
+        }),
+      }),
+      [position],
+  )
 
   return (
-    <div
-      ref={(node) => drop(drag(node))}
-      style={{ position: 'absolute', top: position.top, left: position.left }}
+    <div ref={drop} style={{width: '100vw', height: '100vh', position: 'absolute', zIndex: 10,}}>
+         { (isDragging)? (<div ref={drag} />) :
+   
+    <button
+      className="box absolute bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors cursor-move"
+      ref={drag}
+      style={{ left: position.left, top: position.top }}
+      data-testid="box"
+      onClick={onClick}
     >
-      <button
-        onClick={onClick}
-        className="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors cursor-move"
-      >
-        <MessageSquareDot size={24} />
-      </button>
+        <MessageCircle size={24} />
+    </button>}
     </div>
-  );
-};
+  )
+}
+

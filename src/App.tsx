@@ -11,7 +11,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       <DndProvider backend={HTML5Backend}>
-        {!isChatOpen && <FloatingButtonDnD onClick={() => setIsChatOpen(!isChatOpen)} />}
+        {!isChatOpen && <FloatingButtonDnD onClick={() => setIsChatOpen(!isChatOpen)}/>}
       </DndProvider>
       {!isChatOpen && <FloatingButton onClick={() => setIsChatOpen(!isChatOpen)} />}
       {isChatOpen && <ChatWindow onClose={() => setIsChatOpen(false)} />}
